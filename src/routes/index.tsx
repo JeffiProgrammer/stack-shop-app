@@ -4,7 +4,6 @@ import {
   CardDescription,
   CardTitle,
   CardHeader,
-  CardContent,
 } from '#/components/ui/card'
 import { sampleProducts } from '#/db/seed'
 import { createFileRoute, Link } from '@tanstack/react-router'
