@@ -1,4 +1,4 @@
-import { createRouter as createTanStackRouter } from '@tanstack/react-router'
+import { createRouter as createTanStackRouter, Link } from '@tanstack/react-router'
 import { routeTree } from './routeTree.gen'
 
 export function getRouter() {
@@ -8,6 +8,14 @@ export function getRouter() {
     scrollRestoration: true,
     defaultPreload: 'intent', // preload all the links when user hovers or focuses them
     defaultPreloadStaleTime: 0,
+    defaultNotFoundComponent: () => {
+      return (
+        <div>
+          <p>Not Found Page</p>
+          <Link to="/">Go Home</Link>
+        </div>
+      )
+    },
   })
 
   return router
