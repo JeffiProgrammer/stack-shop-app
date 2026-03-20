@@ -11,3 +11,12 @@ dist-ssr
 .vinxi
 __unconfig*
 todos.json
+
+# AI Skills (auto-added by install.sh)
+.agents/
+.cursor/skills/
+.codex/skills/
+.claude/skills/
+.github/skills/
+.cursorrules
+.cursor/rules/project-guidelines.mdc

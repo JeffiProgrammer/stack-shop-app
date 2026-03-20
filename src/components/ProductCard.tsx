@@ -12,10 +12,14 @@ import {
 import { Link } from '@tanstack/react-router'
 
 const inventoryTone = {
-  'in-stock': 'bg-emerald-50 text-emerald-600 border-emerald-100',
-  'out-of-stock': 'bg-red-50 text-red-600 border-red-100',
-  'pre-order': 'bg-indigo-50 text-indigo-700 border-indogo-100',
-  'back-order': 'bg-amber-50 text-amber-700 border-amber-100',
+  'in-stock':
+    'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800/70 dark:bg-emerald-950/40 dark:text-emerald-300',
+  'out-of-stock':
+    'border-red-200 bg-red-50 text-red-700 dark:border-red-800/70 dark:bg-red-950/40 dark:text-red-300',
+  'pre-order':
+    'border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-800/70 dark:bg-indigo-950/40 dark:text-indigo-300',
+  'back-order':
+    'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800/70 dark:bg-amber-950/40 dark:text-amber-300',
 }
 
 export function ProductCard({
@@ -38,11 +42,19 @@ export function ProductCard({
       params={{ id: '1' }}
       className="cursor-pointer h-full hover:-translate-y-1 hover:shadow-lg transition"
     >
-      <Card className="px-4 py-4">
+      <Card className="py-4">
+        <div className="aspect-[5/3] overflow-hidden bg-muted">
+          <img
+            src={product.image}
+            alt={product.name}
+            loading="lazy"
+            className="h-full w-full object-cover transition duration-300 group-hover/card:scale-[1.02]"
+          />
+        </div>
         <CardHeader className="gap-2">
           <div className="flex items-center gap-2">
             {product.badge && (
-              <span className="rounded-full bg-slate-900 px-2 py-0.5 text-xs font-semibold text-white">
+              <span className="rounded-full bg-foreground px-2 py-0.5 text-xs font-semibold text-background">
                 {product.badge}
               </span>
             )}
@@ -54,9 +66,11 @@ export function ProductCard({
         </CardHeader>
 
         <CardContent className="flex items-center justify-between">
-          <p className="flex items-center gap-2 text-sm text-slate-600">
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
             <span className="font-semibold">{product.rate}</span>
-            <span className="text-slate-400">({product.reviews} reviews)</span>
+            <span className="text-muted-foreground/80">
+              ({product.reviews} reviews)
+            </span>
           </p>
           <span
             className={cn(
@@ -78,14 +92,14 @@ export function ProductCard({
           <Button
             size="sm"
             variant={'secondary'}
-            className={'bg-slate-900 text-white hover:bg-slate-800'}
+            className={'bg-foreground text-background hover:bg-foreground/90'}
             onClick={(e) => {
               console.log('add to card')
               e.stopPropagation()
               e.preventDefault()
             }}
           >
-            <ShoppingBagIcon size={16} /> Add to Card
+            <ShoppingBagIcon size={16} /> Add to Cart
           </Button>
         </CardFooter>
       </Card>

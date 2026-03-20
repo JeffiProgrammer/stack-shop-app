@@ -21,20 +21,20 @@ async function App() {
   const { products } = Route.useLoaderData()
 
   return (
-    <div className="space-y-12 bg-linear-to-b from-slate-50 via-white to-slate-50 p-6">
+    <div className="space-y-12 bg-linear-to-b from-background via-background to-muted/40 p-6">
       <section>
-        <Card className="p-8 shadow-md bg-white/80">
-          <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">
+        <Card className="bg-card/80 p-8 shadow-md">
+          <p className="text-sm font-semibold uppercase tracking-wide text-primary">
             Your favourite e-commerce store
           </p>
-          <CardTitle className="text-4xl font-bold leading-tight text-slate-900 dark:text-white max-w-2xl">
+          <CardTitle className="max-w-2xl text-4xl font-bold leading-tight">
             <h1>StartShop - Your one-stop shop for all your needs</h1>
           </CardTitle>
           <CardDescription>
             <Link
               to="/products"
-              className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-lg transition
-              hover:-translate-y-0.5 hover:shadow-xl"
+              className="inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-3 text-sm font-semibold text-background shadow-lg transition hover:-translate-y-0.5 hover:bg-foreground/90
+              hover:shadow-xl"
             >
               Browse products
               <ArrowRightIcon size={16} />
@@ -42,32 +42,33 @@ async function App() {
           </CardDescription>
         </Card>
       </section>
-      <section className="space-y-4 max-w-6xl mx-auto">
-        <Card className="p-6 shadow-md bg-white/80">
+      <section className="space-y-4">
+        <Card className="bg-card/80 p-6 shadow-md">
           <div className="flex items-center justify-between">
             <div>
               <CardHeader className="px-0">
-                <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">
+                <p className="text-xs font-semibold uppercase tracking-wide text-primary">
                   Recommended
                 </p>
-                <CardTitle className="text-2xl font-semibold text-slate-900">
+                <CardTitle className="text-2xl font-semibold">
                   Starter picks from the catalog
                 </CardTitle>
               </CardHeader>
-              <CardDescription className="text-sm text-slate-600">
+              <CardDescription className="text-sm">
                 Created items to try the cart and detail page quickly.
               </CardDescription>
             </div>
             <div>
               <Link
                 to="/products"
-                className="hidden items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-shadow-slate-700 sm:inline-flex transition hover:-translate-y-0.5 hover:shadow-xl"
+                className="hidden items-center gap-2 rounded-full border border-border bg-background/70 px-4 py-2 text-xs font-semibold text-foreground transition hover:-translate-y-0.5 hover:bg-muted
+                hover:shadow-xl sm:inline-flex"
               >
                 View All <ArrowRightIcon size={14} />
               </Link>
             </div>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {products.map((product, index) => (
               <ProductCard key={`product-${index}`} product={product} />
             ))}

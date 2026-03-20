@@ -15,7 +15,12 @@ const fetchProducts = createServerFn({ method: 'GET' }).handler(() => {
 
 const loggerMiddleware = createMiddleware().server(
   async ({ next, request }) => {
-    console.log('---loggerMiddleware---', request.url, "from", request.headers.get('origin'))
+    console.log(
+      '---loggerMiddleware---',
+      request.url,
+      'from',
+      request.headers.get('origin'),
+    )
     return next()
   },
 )
@@ -35,28 +40,28 @@ function RouteComponent() {
 
   return (
     <div className="space-y-6">
-      <section className="space-y-4 max-w-6xl mx-auto">
-        <Card className="p-6 shadow-md bg-white/80">
+      <section className="space-y-4">
+        <Card className="bg-card/80 p-6 shadow-md">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <CardHeader className="px-0">
-                <p className="text-sm uppercase tracking-wide text-slate-500">
+                <p className="text-sm uppercase tracking-wide text-muted-foreground">
                   StartShop Catalog
                 </p>
                 <CardTitle className="text-2xl font-semibold">
                   Products build for makers
                 </CardTitle>
               </CardHeader>
-              <CardDescription className="text-sm text-slate-600">
+              <CardDescription className="text-sm">
                 Browse a minimal, production-flavoured catalog with TanStack
-                Start server functinos and typed routes.
+                Start server functions and typed routes.
               </CardDescription>
             </div>
           </div>
         </Card>
       </section>
       <section>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {products.map((product, index) => (
             <ProductCard key={`product-${index}`} product={product} />
           ))}
