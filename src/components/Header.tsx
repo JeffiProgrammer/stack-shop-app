@@ -5,7 +5,7 @@ import { AccentSwitcher } from './AccentSwitcher'
 export default function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/70">
-      <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between px-4 py-3 sm:px-6 xl:px-8">
+      <div className="flex w-full items-center justify-between px-4 py-3 sm:px-6 xl:px-8">
         <div className="flex items-center gap-3">
           <Link to="/" className="flex items-center gap-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">

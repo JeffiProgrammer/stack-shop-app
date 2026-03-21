@@ -5,7 +5,7 @@ import {
   CardTitle,
   CardHeader,
 } from '#/components/ui/card'
-import { sampleProducts } from '#/db/seed'
+import { getRecommendedProducts } from '#/data/products'
 import { createFileRoute, Link } from '@tanstack/react-router'
 
 import { ArrowRightIcon } from 'lucide-react'
@@ -13,7 +13,8 @@ import { ArrowRightIcon } from 'lucide-react'
 export const Route = createFileRoute('/')({
   component: App,
   loader: async () => {
-    return { products: sampleProducts.slice(0, 3) }
+  const products = await getRecommendedProducts()
+    return { products }
   },
 })
 
@@ -68,7 +69,7 @@ async function App() {
               </Link>
             </div>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
             {products.map((product, index) => (
               <ProductCard key={`product-${index}`} product={product} />
             ))}

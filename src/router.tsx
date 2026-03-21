@@ -1,10 +1,17 @@
-import { createRouter as createTanStackRouter, Link } from '@tanstack/react-router'
+import {
+  createRouter as createTanStackRouter,
+  Link,
+} from '@tanstack/react-router'
+import { QueryClient } from '@tanstack/react-query'
+import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query'
 import { routeTree } from './routeTree.gen'
 
 export function getRouter() {
+  const queryClient = new QueryClient()
+
   const router = createTanStackRouter({
     routeTree,
-
+    context: { queryClient },
     scrollRestoration: true,
     defaultPreload: 'intent', // preload all the links when user hovers or focuses them
     defaultPreloadStaleTime: 0,
@@ -18,6 +25,8 @@ export function getRouter() {
     },
   })
 
+  setupRouterSsrQueryIntegration({ router, queryClient })
+   
   return router
 }
 

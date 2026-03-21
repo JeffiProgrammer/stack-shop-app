@@ -10,6 +10,7 @@ import {
   CardFooter,
 } from './ui/card'
 import { Link } from '@tanstack/react-router'
+import type { ProductSelect } from '#/db/schema'
 
 const inventoryTone = {
   'in-stock':
@@ -22,31 +23,19 @@ const inventoryTone = {
     'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800/70 dark:bg-amber-950/40 dark:text-amber-300',
 }
 
-export function ProductCard({
-  product,
-}: {
-  product: {
-    name: string
-    description: string
-    price: number
-    badge?: string
-    rate: number
-    reviews: number
-    image: string
-    inventory: string
-  }
-}) {
+export function ProductCard({ product }: { product: ProductSelect }) {
   return (
     <Link
       to="/products/$id"
-      params={{ id: '1' }}
+      params={{ id: product.id }}
       className="cursor-pointer h-full hover:-translate-y-1 hover:shadow-lg transition"
     >
       <Card className="py-4">
         <div className="aspect-[5/3] overflow-hidden bg-muted">
           <img
-            src={product.image}
+            src={product.image || 'https://picsum.photos/seed/picsum/500/300'}
             alt={product.name}
+            title={product.name}
             loading="lazy"
             className="h-full w-full object-cover transition duration-300 group-hover/card:scale-[1.02]"
           />
@@ -75,7 +64,7 @@ export function ProductCard({
           <span
             className={cn(
               'rounded-full border px-3 py-1 text-xs font-semibold',
-              inventoryTone[product.inventory as keyof typeof inventoryTone],
+              inventoryTone[product.inventory],
             )}
           >
             {product.inventory === 'in-stock'
@@ -88,7 +77,7 @@ export function ProductCard({
           </span>
         </CardContent>
         <CardFooter className="pt-0 flex items-center justify-between border-t-0 bg-transparent">
-          <span className="text-lg font-bold">${product.price.toFixed(2)}</span>
+          <span className="text-lg font-bold">${product.price}</span>
           <Button
             size="sm"
             variant={'secondary'}

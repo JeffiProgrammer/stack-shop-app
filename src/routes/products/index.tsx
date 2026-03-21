@@ -5,39 +5,42 @@ import {
   CardHeader,
   CardTitle,
 } from '#/components/ui/card'
-import { sampleProducts } from '#/db/seed'
+import { getAllProducts } from '#/data/products'
+import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { createMiddleware, createServerFn } from '@tanstack/react-start'
 
-const fetchProducts = createServerFn({ method: 'GET' }).handler(() => {
-  return sampleProducts
-})
-
 const loggerMiddleware = createMiddleware().server(
   async ({ next, request }) => {
-    console.log(
-      '---loggerMiddleware---',
-      request.url,
-      'from',
-      request.headers.get('origin'),
-    )
+    const source =
+      request.headers.get('origin') ?? request.headers.get('host') ?? 'unknown'
+
+    console.log('---loggerMiddleware---', request.url, 'source:', source)
     return next()
   },
 )
 
+const fetchProducts = createServerFn({ method: 'GET' })
+  .middleware([loggerMiddleware])
+  .handler(async() => {
+    return await getAllProducts()
+  })
+
 export const Route = createFileRoute('/products/')({
   component: RouteComponent,
   loader: async () => {
+    console.log("--LOADER--")
     return fetchProducts()
-  },
-  server: {
-    middleware: [loggerMiddleware],
-  },
+  }
 })
 
 function RouteComponent() {
   const products = Route.useLoaderData()
-
+  const { data } = useQuery({
+    queryKey: ['products'],
+    queryFn: fetchProducts,
+    initialData: products,
+  })
   return (
     <div className="space-y-6">
       <section className="space-y-4">
@@ -61,8 +64,8 @@ function RouteComponent() {
         </Card>
       </section>
       <section>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {products.map((product, index) => (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+          {data.map((product, index) => (
             <ProductCard key={`product-${index}`} product={product} />
           ))}
         </div>
