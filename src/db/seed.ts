@@ -1,5 +1,6 @@
 import dotenv from 'dotenv'
-import type { ProductInsert } from './schema'
+import { eq } from 'drizzle-orm'
+import type { ProductInsert, ProductReviewInsert } from './schema'
 
 dotenv.config()
 
@@ -13,8 +14,6 @@ const sampleProducts: ProductInsert[] = [
     description: 'Description for Product 1',
     price: '19.99',
     badge: 'New',
-    rate: '4.5',
-    reviews: 100,
     image: 'https://picsum.photos/seed/picsum/500/300',
     inventory: 'in-stock',
   },
@@ -23,8 +22,6 @@ const sampleProducts: ProductInsert[] = [
     description: 'Description for Product 2',
     price: '29.99',
     badge: 'Sale',
-    rate: '4.0',
-    reviews: 50,
     image: 'https://picsum.photos/seed/picsum/500/300',
     inventory: 'in-stock',
   },
@@ -33,8 +30,6 @@ const sampleProducts: ProductInsert[] = [
     description: 'Description for Product 3',
     price: '39.99',
     badge: 'Limited',
-    rate: '3.5',
-    reviews: 20,
     image: 'https://picsum.photos/seed/picsum/500/300',
     inventory: 'out-of-stock',
   },
@@ -43,8 +38,6 @@ const sampleProducts: ProductInsert[] = [
     description: 'Description for Product 4',
     price: '49.99',
     badge: 'Exclusive',
-    rate: '5.0',
-    reviews: 200,
     image: 'https://picsum.photos/seed/picsum/500/300',
     inventory: 'in-stock',
   },
@@ -53,8 +46,6 @@ const sampleProducts: ProductInsert[] = [
     description: 'Description for Product 5',
     price: '59.99',
     badge: 'Best Seller',
-    rate: '4.8',
-    reviews: 150,
     image: 'https://picsum.photos/seed/picsum/500/300',
     inventory: 'in-stock',
   },
@@ -62,8 +53,6 @@ const sampleProducts: ProductInsert[] = [
     name: 'Product 6',
     description: 'Description for Product 6',
     price: '69.99',
-    rate: '4.3',
-    reviews: 80,
     image: 'https://picsum.photos/seed/picsum/500/300',
     inventory: 'in-stock',
   },
@@ -72,8 +61,6 @@ const sampleProducts: ProductInsert[] = [
     description: 'Description for Product 7',
     price: '79.99',
     badge: 'Sale',
-    rate: '4.1',
-    reviews: 60,
     image: 'https://picsum.photos/seed/picsum/500/300',
     inventory: 'in-stock',
   },
@@ -82,8 +69,6 @@ const sampleProducts: ProductInsert[] = [
     description: 'Description for Product 8',
     price: '89.99',
     badge: 'Limited',
-    rate: '3.9',
-    reviews: 30,
     image: 'https://picsum.photos/seed/picsum/500/300',
     inventory: 'out-of-stock',
   },
@@ -92,8 +77,6 @@ const sampleProducts: ProductInsert[] = [
     description: 'Description for Product 9',
     price: '99.99',
     badge: 'Exclusive',
-    rate: '4.7',
-    reviews: 120,
     image: 'https://picsum.photos/seed/picsum/500/300',
     inventory: 'in-stock',
   },
@@ -102,8 +85,6 @@ const sampleProducts: ProductInsert[] = [
     description: 'Description for Product 10',
     price: '109.99',
     badge: 'Best Seller',
-    rate: '4.9',
-    reviews: 180,
     image: 'https://picsum.photos/seed/picsum/500/300',
     inventory: 'in-stock',
   },
@@ -112,8 +93,6 @@ const sampleProducts: ProductInsert[] = [
     description: 'Description for Product 11',
     price: '119.99',
     badge: 'New',
-    rate: '4.4',
-    reviews: 90,
     image: 'https://picsum.photos/seed/picsum/500/300',
     inventory: 'pre-order',
   },
@@ -122,18 +101,54 @@ const sampleProducts: ProductInsert[] = [
     description: 'Description for Product 12',
     price: '129.99',
     badge: 'Sale',
-    rate: '4.2',
-    reviews: 70,
     image: 'https://picsum.photos/seed/picsum/500/300',
     inventory: 'back-order',
   },
 ]
 
+const reviewerNames = [
+  'Maya',
+  'Aria',
+  'Noah',
+  'Oliver',
+  'Ava',
+  'Liam',
+  'Sophia',
+  'Mason',
+  'Ethan',
+  'Emma',
+]
+
+const reviewComments = [
+  'Build quality feels premium and the product works exactly as expected.',
+  'Packaging was clean, shipping was quick, and setup took less than five minutes.',
+  'Great value for the price. I would buy this again without hesitation.',
+  'Solid product overall, but I wish the instructions had a bit more detail.',
+  'The finish and materials are better than I expected at this price point.',
+  'Good performance and easy to use day-to-day. No major complaints so far.',
+  'Customer support was responsive and helped me with a small setup issue quickly.',
+  'Looks great on my desk and does exactly what I needed it to do.',
+]
+
+const reviewRatings = [5, 4, 4, 5, 3, 5, 4, 5]
+
+function buildSeedReviews(productId: string, productIndex: number): ProductReviewInsert[] {
+  return [0, 1, 2].map((offset) => {
+    const lookupIndex = (productIndex + offset) % reviewComments.length
+    return {
+      productId,
+      reviewerName: reviewerNames[(productIndex + offset) % reviewerNames.length],
+      rating: reviewRatings[lookupIndex],
+      comment: reviewComments[lookupIndex],
+    }
+  })
+}
+
 async function seed() {
   try {
     // Dynamically import database modules after environment variables are loaded
     const { db } = await import('./index')
-    const { products } = await import('./schema')
+    const { products, productReviews } = await import('./schema')
 
     console.log('🍃 Seeding database with sample products...')
 
@@ -158,9 +173,39 @@ async function seed() {
       }
     }
 
-    await db.insert(products).values(sampleProducts)
+    const insertedProducts = await db
+      .insert(products)
+      .values(sampleProducts)
+      .returning({
+        id: products.id,
+      })
+
+    const seededReviews = insertedProducts.flatMap((product, index) =>
+      buildSeedReviews(product.id, index),
+    )
+
+    await db.insert(productReviews).values(seededReviews)
+
+    for (const product of insertedProducts) {
+      const reviewsForProduct = seededReviews.filter(
+        (review) => review.productId === product.id,
+      )
+      const reviewsCount = reviewsForProduct.length
+      const averageRating =
+        reviewsForProduct.reduce((sum, review) => sum + review.rating, 0) /
+        reviewsCount
+
+      await db
+        .update(products)
+        .set({
+          rate: averageRating.toFixed(2),
+          reviews: reviewsCount,
+        })
+        .where(eq(products.id, product.id))
+    }
 
     console.log(`📦 Inserted ${sampleProducts.length} products`)
+    console.log(`🗣️ Inserted ${seededReviews.length} product reviews`)
     console.log(`✅ Products inserted into the database successfully!`)
     process.exit(0)
   } catch (error) {

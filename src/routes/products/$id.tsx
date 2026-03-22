@@ -1,3 +1,4 @@
+import * as React from 'react'
 import { Button } from '#/components/ui/button'
 import { cn } from '#/lib/utils'
 import {
@@ -8,8 +9,8 @@ import {
   CardHeader,
   CardTitle,
 } from '#/components/ui/card'
-import { fetchProductById } from '#/lib/product-queries'
-import { createFileRoute, Link, notFound } from '@tanstack/react-router'
+import { createProductReview, fetchProductById } from '#/lib/product-queries'
+import { createFileRoute, Link, notFound, useRouter } from '@tanstack/react-router'
 
 import { ArrowLeftIcon, ShoppingBag, SparklesIcon, StarIcon } from 'lucide-react'
 
@@ -41,16 +42,19 @@ const inventoryMessage = {
 export const Route = createFileRoute('/products/$id')({
   component: RouteComponent,
   loader: async ({ params }) => {
-    const product = await fetchProductById({ data: params.id })
-    if (!product) {
+    const details = await fetchProductById({ data: params.id })
+    if (!details || !details.product) {
       throw notFound()
     }
-    return product
+    return details
   },
-  head: async ({ loaderData: product }) => {
-    if (!product) {
+  head: async ({ loaderData: details }) => {
+    if (!details?.product) {
       return {}
     }
+
+    const product = details.product
+
     return {
       meta: [
         {
@@ -76,10 +80,66 @@ export const Route = createFileRoute('/products/$id')({
   },
 })
 
+function formatReviewDate(value: string | Date) {
+  const dateValue = value instanceof Date ? value : new Date(value)
+
+  if (Number.isNaN(dateValue.getTime())) {
+    return 'Recently'
+  }
+
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(dateValue)
+}
+
 function RouteComponent() {
-  const product = Route.useLoaderData()
+  const { product, reviews } = Route.useLoaderData()
+  const router = useRouter()
   const productImage =
     product.image || 'https://picsum.photos/seed/picsum/1200/900'
+  const [reviewerName, setReviewerName] = React.useState('')
+  const [comment, setComment] = React.useState('')
+  const [rating, setRating] = React.useState(5)
+  const [submissionError, setSubmissionError] = React.useState<string | null>(null)
+  const [submissionSuccess, setSubmissionSuccess] = React.useState<string | null>(null)
+  const [isPending, startTransition] = React.useTransition()
+
+  const reviewCount = product.reviews ?? reviews.length
+  const averageRating =
+    product.rate === null || product.rate === undefined
+      ? null
+      : Number.parseFloat(product.rate.toString()).toFixed(1)
+
+  const handleSubmitReview = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setSubmissionError(null)
+    setSubmissionSuccess(null)
+
+    startTransition(() => {
+      void (async () => {
+        try {
+          await createProductReview({
+            data: {
+              productId: product.id,
+              reviewerName,
+              rating,
+              comment,
+            },
+          })
+          setComment('')
+          setRating(5)
+          setSubmissionSuccess('Review submitted successfully.')
+          await router.invalidate()
+        } catch (error) {
+          setSubmissionError(
+            error instanceof Error ? error.message : 'Unable to submit your review.',
+          )
+        }
+      })()
+    })
+  }
 
   return (
     <section className="mx-auto max-w-6xl space-y-4">
@@ -158,10 +218,10 @@ function RouteComponent() {
                   <div className="mt-3 flex items-end gap-3">
                     <div className="flex items-center gap-2 text-2xl font-semibold tracking-tight">
                       <StarIcon size={20} className="fill-amber-400 text-amber-400" />
-                      <span>{product.rate ?? 'N/A'}</span>
+                      <span>{averageRating ?? 'N/A'}</span>
                     </div>
                     <span className="pb-1 text-sm text-muted-foreground">
-                      {product.reviews ?? 0} reviews
+                      {reviewCount} reviews
                     </span>
                   </div>
                 </div>
@@ -215,6 +275,165 @@ function RouteComponent() {
             </CardFooter>
           </div>
         </div>
+      </Card>
+
+      <Card className="border border-border/70 bg-card/95 py-0 shadow-sm">
+        <CardHeader className="border-b border-border/70 px-5 pt-5 pb-5 sm:px-6 lg:px-8">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <CardTitle className="text-2xl font-semibold tracking-tight">
+                Customer reviews
+              </CardTitle>
+              <CardDescription className="mt-1 text-sm">
+                Read what buyers are saying and share your own experience.
+              </CardDescription>
+            </div>
+            <div className="rounded-xl border border-border/70 bg-muted/30 px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                Average
+              </p>
+              <p className="mt-1 flex items-center gap-2 text-lg font-semibold">
+                <StarIcon size={16} className="fill-amber-400 text-amber-400" />
+                {averageRating ?? 'N/A'}
+                <span className="text-sm font-medium text-muted-foreground">
+                  ({reviewCount} total)
+                </span>
+              </p>
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent className="space-y-6 px-5 py-5 sm:px-6 sm:py-6 lg:px-8">
+          <form
+            onSubmit={handleSubmitReview}
+            className="space-y-4 rounded-2xl border border-border/70 bg-muted/25 p-4 sm:p-5"
+          >
+            <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto]">
+              <label className="space-y-2 text-sm">
+                <span className="font-medium text-foreground">Your name</span>
+                <input
+                  type="text"
+                  value={reviewerName}
+                  onChange={(event) => {
+                    setReviewerName(event.target.value)
+                  }}
+                  placeholder="Jane Doe"
+                  required
+                  minLength={2}
+                  maxLength={60}
+                  className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none ring-0 transition focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/40"
+                />
+              </label>
+
+              <div className="space-y-2 text-sm">
+                <span className="font-medium text-foreground">Rating</span>
+                <div className="flex flex-wrap items-center gap-2">
+                  {[1, 2, 3, 4, 5].map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setRating(value)}
+                      className={cn(
+                        'inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-xs font-semibold transition',
+                        rating === value
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-border bg-background text-muted-foreground hover:bg-muted',
+                      )}
+                      aria-pressed={rating === value}
+                      title={`Set rating to ${value} star${value > 1 ? 's' : ''}`}
+                    >
+                      <StarIcon
+                        size={13}
+                        className={cn(
+                          rating >= value
+                            ? 'fill-amber-400 text-amber-400'
+                            : 'fill-transparent text-muted-foreground',
+                        )}
+                      />
+                      {value}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <label className="space-y-2 text-sm">
+              <span className="font-medium text-foreground">Comment</span>
+              <textarea
+                value={comment}
+                onChange={(event) => {
+                  setComment(event.target.value)
+                }}
+                placeholder="Tell others what you liked or what could be better."
+                required
+                minLength={8}
+                maxLength={800}
+                rows={4}
+                className="w-full resize-y rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground outline-none ring-0 transition focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/40"
+              />
+            </label>
+
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs text-muted-foreground">
+                Reviews are published immediately after submission.
+              </p>
+              <Button type="submit" disabled={isPending} className="h-10 px-4">
+                {isPending ? 'Submitting...' : 'Submit review'}
+              </Button>
+            </div>
+
+            {submissionError && (
+              <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {submissionError}
+              </p>
+            )}
+            {submissionSuccess && !submissionError && (
+              <p className="rounded-lg border border-emerald-500/35 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-300">
+                {submissionSuccess}
+              </p>
+            )}
+          </form>
+
+          {reviews.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-border/80 bg-background/50 px-5 py-8 text-center text-sm text-muted-foreground">
+              No reviews yet. Be the first to leave one for this product.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {reviews.map((review) => (
+                <article
+                  key={review.id}
+                  className="space-y-3 rounded-2xl border border-border/70 bg-background/65 p-4 sm:p-5"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">
+                        {review.reviewerName}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatReviewDate(review.createdAt)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((value) => (
+                        <StarIcon
+                          key={`${review.id}-star-${value}`}
+                          size={14}
+                          className={cn(
+                            value <= review.rating
+                              ? 'fill-amber-400 text-amber-400'
+                              : 'fill-transparent text-muted-foreground',
+                          )}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-sm leading-6 text-foreground/90">{review.comment}</p>
+                </article>
+              ))}
+            </div>
+          )}
+        </CardContent>
       </Card>
     </section>
   )

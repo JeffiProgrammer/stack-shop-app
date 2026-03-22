@@ -1,15 +1,18 @@
 import {
+  check,
+  index,
   pgTable,
-  varchar,
-  numeric,
   integer,
-  text,
+  numeric,
   pgEnum,
-  uuid,
   timestamp,
+  text,
+  uuid,
+  varchar,
 } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
 
-const badgeValues = ['New', 'Sale', 'Exclusive', 'Limited','Best Seller'] as const
+const badgeValues = ['New', 'Sale', 'Exclusive', 'Limited', 'Best Seller'] as const
 const inventoryValues = ['in-stock', 'out-of-stock', 'pre-order', 'back-order'] as const
 
 export const badgeEnum = pgEnum('badge', badgeValues)
@@ -30,6 +33,27 @@ export const products = pgTable('products', {
 
 export type ProductSelect = typeof products.$inferSelect
 export type ProductInsert = typeof products.$inferInsert
+
+export const productReviews = pgTable(
+  'product_reviews',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    productId: uuid('product_id')
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }),
+    reviewerName: varchar('reviewer_name', { length: 128 }).notNull(),
+    rating: integer('rating').notNull(),
+    comment: text('comment').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('product_reviews_product_id_idx').on(table.productId),
+    check('product_reviews_rating_check', sql`${table.rating} >= 1 AND ${table.rating} <= 5`),
+  ],
+)
+
+export type ProductReviewSelect = typeof productReviews.$inferSelect
+export type ProductReviewInsert = typeof productReviews.$inferInsert
 
 // Cart items table
 export const cartItems = pgTable('cart_items', {
