@@ -3,7 +3,7 @@
 @import 'shadcn/tailwind.css';
 @import '@fontsource-variable/figtree';
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
   --background: oklch(1 0 0);
@@ -132,7 +132,7 @@
   .theme-transition,
   .theme-transition * {
     transition-property:
-      background-color, border-color, color, fill, stroke, box-shadow;
+      background-color, border-color, color, fill, stroke, box-shadow, opacity;
     transition-duration: 220ms;
     transition-timing-function: ease;
   }

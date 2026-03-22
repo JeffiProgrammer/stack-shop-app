@@ -5,33 +5,15 @@ import {
   CardHeader,
   CardTitle,
 } from '#/components/ui/card'
-import { getAllProducts } from '#/data/products'
+import { fetchProducts } from '#/lib/product-queries'
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { createMiddleware, createServerFn } from '@tanstack/react-start'
-
-const loggerMiddleware = createMiddleware().server(
-  async ({ next, request }) => {
-    const source =
-      request.headers.get('origin') ?? request.headers.get('host') ?? 'unknown'
-
-    console.log('---loggerMiddleware---', request.url, 'source:', source)
-    return next()
-  },
-)
-
-const fetchProducts = createServerFn({ method: 'GET' })
-  .middleware([loggerMiddleware])
-  .handler(async() => {
-    return await getAllProducts()
-  })
 
 export const Route = createFileRoute('/products/')({
   component: RouteComponent,
   loader: async () => {
-    console.log("--LOADER--")
     return fetchProducts()
-  }
+  },
 })
 
 function RouteComponent() {

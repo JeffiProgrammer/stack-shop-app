@@ -43,7 +43,7 @@ export function ProductCard({ product }: { product: ProductSelect }) {
         <CardHeader className="gap-2">
           <div className="flex items-center gap-2">
             {product.badge && (
-              <span className="rounded-full bg-foreground px-2 py-0.5 text-xs font-semibold text-background">
+              <span className="rounded-full bg-primary/12 px-2.5 py-1 text-xs font-semibold text-primary ring-1 ring-primary/15">
                 {product.badge}
               </span>
             )}
@@ -80,8 +80,7 @@ export function ProductCard({ product }: { product: ProductSelect }) {
           <span className="text-lg font-bold">${product.price}</span>
           <Button
             size="sm"
-            variant={'secondary'}
-            className={'bg-foreground text-background hover:bg-foreground/90'}
+            variant="default"
             onClick={(e) => {
               console.log('add to card')
               e.stopPropagation()

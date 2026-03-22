@@ -1,27 +1,11 @@
 import * as React from 'react'
 import { Moon, Sun } from 'lucide-react'
+import { applyTheme, initializeTheme  } from '#/lib/theme'
+import type {Theme} from '#/lib/theme';
 import { Button } from './ui/button'
 
-type Theme = 'light' | 'dark'
 const THEME_TRANSITION_CLASS = 'theme-transition'
 const THEME_TRANSITION_MS = 220
-
-function applyTheme(theme: Theme) {
-  const root = document.documentElement
-  root.classList.remove('light', 'dark')
-  root.classList.add(theme)
-  root.setAttribute('data-theme', theme)
-  root.style.colorScheme = theme
-  window.localStorage.setItem('theme', theme)
-}
-
-function readTheme(): Theme {
-  if (typeof document === 'undefined') {
-    return 'light'
-  }
-
-  return document.documentElement.classList.contains('dark') ? 'dark' : 'light'
-}
 
 export function AccentSwitcher() {
   const [theme, setTheme] = React.useState<Theme>('light')
@@ -29,7 +13,7 @@ export function AccentSwitcher() {
   const transitionTimeoutRef = React.useRef<number | null>(null)
 
   React.useEffect(() => {
-    setTheme(readTheme())
+    setTheme(initializeTheme())
     setMounted(true)
   }, [])
 
@@ -48,7 +32,7 @@ export function AccentSwitcher() {
       type="button"
       variant="outline"
       size="icon-sm"
-      aria-label={`Switch to ${nextTheme} theme`}
+      aria-label="Toggle color theme"
       title={`Switch to ${nextTheme} theme`}
       className="rounded-full shadow-sm"
       aria-pressed={theme === 'dark'}
